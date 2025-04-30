@@ -1,3 +1,0 @@
-# This file is for requirements for running the app;
-The requirement to replicate the code and install all dependencies from the original repo. 
-
