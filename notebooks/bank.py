@@ -356,3 +356,12 @@ joblib.dump(svc, 'svc_model.pkl')
 joblib.dump(gnb, 'gaussian_nb_model.pkl')
 joblib.dump(knn, 'knn_model.pkl')
 
+# Load the model
+logreg = joblib.load('logistic_regression_model.pkl')
+dtree = joblib.load('decision_tree_model.pkl')
+rforest = joblib.load('random_forest_model.pkl')
+gbm = joblib.load('gradient_boosting_model.pkl')
+svc = joblib.load('svc_model.pkl')
+gnb = joblib.load('gaussian_nb_model.pkl')
+knn = joblib.load('knn_model.pkl')
+
