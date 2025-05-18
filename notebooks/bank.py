@@ -365,3 +365,21 @@ svc = joblib.load('svc_model.pkl')
 gnb = joblib.load('gaussian_nb_model.pkl')
 knn = joblib.load('knn_model.pkl')
 
+# Make predictions on new data
+new_data = pd.DataFrame({
+    'age': [30],
+    'balance': [1000],
+    'day': [15],
+    'duration': [200],
+    'campaign': [1],
+    'pdays': [999],
+    'previous': [0],
+    'job': ['admin.'],
+    'marital_status': ['single'],
+    'education': ['university.degree'],
+    'month': ['may'],
+    'housing_loan': ['yes'],
+    'personal_loan': ['no'],
+    'credit_default': ['no']
+})
+
