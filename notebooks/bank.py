@@ -226,3 +226,28 @@ plt.title('Receiver Operating Characteristic')
 plt.legend(loc='lower right')
 plt.show()
 
+## Gradient Boosting with Scikit-learn training steps
+
+#Gradient Boosting Classifier
+gbm=GradientBoostingClassifier()
+gbm.fit(X_train_tran,y_train)
+y_pred=gbm.predict(X_test_tran)
+y_pred_proba=gbm.predict_proba(X_test_tran)[:,1]
+print("Gradient Boosting Classifier")
+print("Accuracy: ",accuracy_score(y_test,y_pred))
+print("Classification Report: \n",classification_report(y_test,y_pred))
+print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
+print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
+roc_auc = auc(fpr, tpr)
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, label= f'Gradient Boosting Classifier (area = {roc_auc:.2f}')
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic')
+plt.legend(loc='lower right')
+plt.show()
+
