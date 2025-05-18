@@ -52,3 +52,6 @@ data.replace('unknown', pd.NA, inplace=True)
 data.isnull().sum()
 
 data['contact'].value_counts()/len(data)*100
+
+data.drop(columns=['poutcome','contact'], inplace=True)
+
