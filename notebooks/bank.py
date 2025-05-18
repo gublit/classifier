@@ -79,3 +79,9 @@ plt.show()
 
 data['day'].value_counts()
 
+# Distribution plot of numeric features
+plt
+numeric_ft = data[['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'previous']]
+sns.pairplot(numeric_ft)
+plt.title('Pairplot of Numeric Features')
+plt.show()
