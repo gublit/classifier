@@ -58,3 +58,24 @@ data.drop(columns=['poutcome','contact'], inplace=True)
 #EDA
 data.info()
 
+data.describe()
+
+#Distribution plot of target variable
+plt.figure(figsize=(8, 6))
+sns.set_style('darkgrid')
+sns.countplot(x='target', data=data)
+plt.title('Distribution of Target Variable')
+plt.xlabel('target')
+plt.ylabel('Count')
+plt.show()
+
+
+plt.figure(figsize=(8, 6))
+data['housing_loan'].value_counts().plot(kind='bar',color=['blue', 'orange'])
+plt.title('Distribution of Housing Loan')
+plt.xlabel('Housing Loan')
+plt.ylabel('Count')
+plt.show()
+
+data['day'].value_counts()
+
