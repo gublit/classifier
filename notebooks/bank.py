@@ -129,3 +129,25 @@ pre_pipeline = Pipeline(steps=[
 
 #Split the data into training and testing sets
 X_train,X_test,y_train,y_test = train_test_split(X,y,train_size=0.8,stratify=y,random_state=78)
+
+# Label encode the target variable
+label_encoder = LabelEncoder()
+y_train = label_encoder.fit_transform(y_train)
+y_test = label_encoder.transform(y_test)
+
+print(y_test.shape)
+print(y_train.shape)
+
+y_test.view()
+
+# Fit preprocessing on training data and transform both sets
+X_train_tran = pre_pipeline.fit_transform(X_train)
+X_test_tran = pre_pipeline.transform(X_test)  # No fitting on test data!
+
+print(X_train_tran.shape)
+print(X_test_tran.shape)
+
+
+y_train.shape
+
+## Logic Regression with Scikit-learn training steps
