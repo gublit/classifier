@@ -383,3 +383,22 @@ new_data = pd.DataFrame({
     'credit_default': ['no']
 })
 
+# Preprocess the new data
+new_data = pd.DataFrame(pre_processor.transform(new_data), columns=pre_processor.get_feature_names_out())
+# Make predictions
+logreg_pred = logreg.predict(new_data)
+dtree_pred = dtree.predict(new_data)
+rforest_pred = rforest.predict(new_data)
+gbm_pred = gbm.predict(new_data)
+svc_pred = svc.predict(new_data)
+gnb_pred = gnb.predict(new_data)
+knn_pred = knn.predict(new_data)
+# Print the predictions
+print("Logistic Regression Prediction: ", logreg_pred)
+print("Decision Tree Prediction: ", dtree_pred)
+print("Random Forest Prediction: ", rforest_pred)
+print("Gradient Boosting Prediction: ", gbm_pred)
+print("SVC Prediction: ", svc_pred)
+print("Gaussian Naive Bayes Prediction: ", gnb_pred)
+print("K Neighbors Prediction: ", knn_pred)
+
