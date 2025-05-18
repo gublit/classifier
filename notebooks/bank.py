@@ -98,3 +98,30 @@ data['job'].fillna(data['job'].mode()[0], inplace=True)
 data['education'].fillna(data['education'].mode()[0], inplace=True)
 
 data.isnull().sum()
+
+data['housing_loan'].value_counts()
+
+##category distribution
+data['job'].value_counts()/len(data)*100
+
+X=data.drop(columns=['target'])
+y=data['target']
+print(X.shape)
+print(y.shape)
+
+data['target'].value_counts()
+
+# Create a pipeline for preprocessing
+numeric_features = ['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'previous']
+categorical_features = ['job', 'marital_status', 'education', 'month', 'housing_loan', 'personal_loan', 'credit_default']
+# Create a column transformer to apply different preprocessing steps to different columns
+pre_processor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numeric_features),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    ]
+)
+# Create a pipeline that first applies the preprocessor and then fits a classifier
+pre_pipeline = Pipeline(steps=[
+    ('preprocessor', pre_processor)
+])
