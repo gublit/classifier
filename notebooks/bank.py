@@ -47,3 +47,4 @@ data['contact'].value_counts()
 
 data['poutcome'].value_counts(dropna=False)
 
+data.replace('unknown', pd.NA, inplace=True)
