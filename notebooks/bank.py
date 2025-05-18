@@ -85,3 +85,16 @@ numeric_ft = data[['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'pr
 sns.pairplot(numeric_ft)
 plt.title('Pairplot of Numeric Features')
 plt.show()
+
+#Correlation matrix for numeric features
+plt.figure(figsize=(12, 8))
+correlation_matrix = numeric_ft.corr()
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Matrix')
+plt.show()
+
+
+data['job'].fillna(data['job'].mode()[0], inplace=True)
+data['education'].fillna(data['education'].mode()[0], inplace=True)
+
+data.isnull().sum()
