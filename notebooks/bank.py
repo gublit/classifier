@@ -42,3 +42,8 @@ def rename_n_change(data):
     data['personal_loan'] = data['personal_loan'].astype('category')
     return data
 data=rename_n_change(data)
+
+data['contact'].value_counts()
+
+data['poutcome'].value_counts(dropna=False)
+
