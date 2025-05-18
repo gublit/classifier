@@ -111,6 +111,7 @@ print(y.shape)
 
 data['target'].value_counts()
 
+## Apply preprocessing steps to the dataset
 # Create a pipeline for preprocessing
 numeric_features = ['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'previous']
 categorical_features = ['job', 'marital_status', 'education', 'month', 'housing_loan', 'personal_loan', 'credit_default']
@@ -125,3 +126,6 @@ pre_processor = ColumnTransformer(
 pre_pipeline = Pipeline(steps=[
     ('preprocessor', pre_processor)
 ])
+
+#Split the data into training and testing sets
+X_train,X_test,y_train,y_test = train_test_split(X,y,train_size=0.8,stratify=y,random_state=78)
