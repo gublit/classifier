@@ -355,6 +355,8 @@ joblib.dump(gbm, 'gradient_boosting_model.pkl')
 joblib.dump(svc, 'svc_model.pkl')
 joblib.dump(gnb, 'gaussian_nb_model.pkl')
 joblib.dump(knn, 'knn_model.pkl')
+joblib.dump(pre_pipeline, 'preprocessing_pipeline.pkl')
+joblib.dump(label_encoder, 'label_encoder.pkl')
 
 # Load the model
 logreg = joblib.load('logistic_regression_model.pkl')
@@ -364,6 +366,7 @@ gbm = joblib.load('gradient_boosting_model.pkl')
 svc = joblib.load('svc_model.pkl')
 gnb = joblib.load('gaussian_nb_model.pkl')
 knn = joblib.load('knn_model.pkl')
+
 
 # Make predictions on new data
 new_data = pd.DataFrame({
