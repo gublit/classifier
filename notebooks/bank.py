@@ -342,3 +342,17 @@ results = pd.DataFrame({
                       roc_auc_score(y_test, knn.predict_proba(X_test_tran)[:, 1])]
 })
 
+# Sort the results by accuracy
+results = results.sort_values(by='Accuracy', ascending=False)
+# Display the results
+print(results)
+
+# Save the model
+joblib.dump(logreg, 'logistic_regression_model.pkl')
+joblib.dump(dtree, 'decision_tree_model.pkl')
+joblib.dump(rforest, 'random_forest_model.pkl')
+joblib.dump(gbm, 'gradient_boosting_model.pkl')
+joblib.dump(svc, 'svc_model.pkl')
+joblib.dump(gnb, 'gaussian_nb_model.pkl')
+joblib.dump(knn, 'knn_model.pkl')
+
