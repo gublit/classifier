@@ -55,3 +55,6 @@ data['contact'].value_counts()/len(data)*100
 
 data.drop(columns=['poutcome','contact'], inplace=True)
 
+#EDA
+data.info()
+
