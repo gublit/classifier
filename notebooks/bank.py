@@ -323,3 +323,22 @@ plt.title('Receiver Operating Characteristic')
 plt.legend(loc='lower right')
 plt.show()
 
+# Create a DataFrame to store the results
+results = pd.DataFrame({
+    'Model': ['Logistic Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting', 'SVC', 'Gaussian Naive Bayes', 'K Neighbors'],
+    'Accuracy': [accuracy_score(y_test, logreg.predict(X_test_tran)), 
+                 accuracy_score(y_test, dtree.predict(X_test_tran)), 
+                 accuracy_score(y_test, rforest.predict(X_test_tran)), 
+                 accuracy_score(y_test, gbm.predict(X_test_tran)), 
+                 accuracy_score(y_test, svc.predict(X_test_tran)), 
+                 accuracy_score(y_test, gnb.predict(X_test_tran)), 
+                 accuracy_score(y_test, knn.predict(X_test_tran))],
+    'ROC AUC Score': [roc_auc_score(y_test, logreg.predict_proba(X_test_tran)[:, 1]), 
+                      roc_auc_score(y_test, dtree.predict_proba(X_test_tran)[:, 1]), 
+                      roc_auc_score(y_test, rforest.predict_proba(X_test_tran)[:, 1]), 
+                      roc_auc_score(y_test, gbm.predict_proba(X_test_tran)[:, 1]), 
+                      roc_auc_score(y_test, svc.predict_proba(X_test_tran)[:, 1]), 
+                      roc_auc_score(y_test, gnb.predict_proba(X_test_tran)[:, 1]), 
+                      roc_auc_score(y_test, knn.predict_proba(X_test_tran)[:, 1])]
+})
+
