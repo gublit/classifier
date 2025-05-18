@@ -201,3 +201,28 @@ plt.title('Receiver Operating Characteristic')
 plt.legend(loc='lower right')
 plt.show()
 
+## Random Forest with Scikit-learn training steps
+
+#Random Forest Classifier
+rforest=RandomForestClassifier(n_estimators=100)
+rforest.fit(X_train_tran,y_train)
+y_pred=rforest.predict(X_test_tran)
+y_pred_proba=rforest.predict_proba(X_test_tran)[:,1]
+print("Random Forest Classifier")
+print("Accuracy: ",accuracy_score(y_test,y_pred))
+print("Classification Report: \n",classification_report(y_test,y_pred))
+print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
+print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
+roc_auc = auc(fpr, tpr)
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, label= f'Random Forest Classifier (area = {roc_auc:.2f}')
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic')
+plt.legend(loc='lower right')
+plt.show()
+
