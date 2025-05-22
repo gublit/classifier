@@ -1,8 +1,7 @@
 # Import necessary libraries
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -141,11 +140,11 @@ print(y_train.shape)
 y_test.view()
 
 # Fit preprocessing on training data and transform both sets
-X_train_tran = pre_pipeline.fit_transform(X_train)
-X_test_tran = pre_pipeline.transform(X_test)  # No fitting on test data!
+X_train = pre_pipeline.fit_transform(X_train)
+X_test = pre_pipeline.transform(X_test)  # No fitting on test data!
 
-print(X_train_tran.shape)
-print(X_test_tran.shape)
+print(X_train.shape)
+print(X_test.shape)
 
 
 y_train.shape
@@ -154,11 +153,11 @@ y_train.shape
 
 #Instantiate and train
 logreg=LogisticRegression()
-logreg.fit(X_train_tran,y_train)
+logreg.fit(X_train,y_train)
 
 # Predict, Evaluate and plot
-y_pred=logreg.predict(X_test_tran)
-y_pred_proba=logreg.predict_proba(X_test_tran)[:,1]
+y_pred=logreg.predict(X_test)
+y_pred_proba=logreg.predict_proba(X_test)[:,1]
 print("Logistic Regression")
 print("Accuracy: ",accuracy_score(y_test,y_pred))
 print("Classification Report: \n",classification_report(y_test,y_pred))
@@ -180,9 +179,9 @@ plt.show()
 ## Decision Tree with Scikit-learn training steps
 #Decision Tree Classifier
 dtree=DecisionTreeClassifier()
-dtree.fit(X_train_tran,y_train)
-y_pred=dtree.predict(X_test_tran)
-y_pred_proba=dtree.predict_proba(X_test_tran)[:,1]
+dtree.fit(X_train,y_train)
+y_pred=dtree.predict(X_test)
+y_pred_proba=dtree.predict_proba(X_test)[:,1]
 print("Decision Tree Classifier")
 print("Accuracy: ",accuracy_score(y_test,y_pred))
 print("Classification Report: \n",classification_report(y_test,y_pred))
@@ -205,9 +204,9 @@ plt.show()
 
 #Random Forest Classifier
 rforest=RandomForestClassifier(n_estimators=100)
-rforest.fit(X_train_tran,y_train)
-y_pred=rforest.predict(X_test_tran)
-y_pred_proba=rforest.predict_proba(X_test_tran)[:,1]
+rforest.fit(X_train,y_train)
+y_pred=rforest.predict(X_test)
+y_pred_proba=rforest.predict_proba(X_test)[:,1]
 print("Random Forest Classifier")
 print("Accuracy: ",accuracy_score(y_test,y_pred))
 print("Classification Report: \n",classification_report(y_test,y_pred))
@@ -230,9 +229,9 @@ plt.show()
 
 #Gradient Boosting Classifier
 gbm=GradientBoostingClassifier()
-gbm.fit(X_train_tran,y_train)
-y_pred=gbm.predict(X_test_tran)
-y_pred_proba=gbm.predict_proba(X_test_tran)[:,1]
+gbm.fit(X_train,y_train)
+y_pred=gbm.predict(X_test)
+y_pred_proba=gbm.predict_proba(X_test)[:,1]
 print("Gradient Boosting Classifier")
 print("Accuracy: ",accuracy_score(y_test,y_pred))
 print("Classification Report: \n",classification_report(y_test,y_pred))
@@ -254,9 +253,9 @@ plt.show()
 ## SVM with Scikit-learn training steps
 #Support Vector Classifier
 svc=SVC(probability=True)
-svc.fit(X_train_tran,y_train)
-y_pred=svc.predict(X_test_tran)
-y_pred_proba=svc.predict_proba(X_test_tran)[:,1]
+svc.fit(X_train,y_train)
+y_pred=svc.predict(X_test)
+y_pred_proba=svc.predict_proba(X_test)[:,1]
 print("Support Vector Classifier")
 print("Accuracy: ",accuracy_score(y_test,y_pred))
 print("Classification Report: \n",classification_report(y_test,y_pred))
@@ -278,9 +277,9 @@ plt.show()
 ## GaussianNB with Scikit-learn training steps
 #Gaussian Naive Bayes
 gnb=GaussianNB()
-gnb.fit(X_train_tran,y_train)
-y_pred=gnb.predict(X_test_tran)
-y_pred_proba=gnb.predict_proba(X_test_tran)[:,1]
+gnb.fit(X_train,y_train)
+y_pred=gnb.predict(X_test)
+y_pred_proba=gnb.predict_proba(X_test)[:,1]
 print("Gaussian Naive Bayes")
 print("Accuracy: ",accuracy_score(y_test,y_pred))
 print("Classification Report: \n",classification_report(y_test,y_pred))
@@ -302,9 +301,9 @@ plt.show()
 ##KNeighbors with Scikit-learn training steps
 #K Neighbors Classifier
 knn=KNeighborsClassifier()
-knn.fit(X_train_tran,y_train)
-y_pred=knn.predict(X_test_tran)
-y_pred_proba=knn.predict_proba(X_test_tran)[:,1]
+knn.fit(X_train,y_train)
+y_pred=knn.predict(X_test)
+y_pred_proba=knn.predict_proba(X_test)[:,1]
 print("K Neighbors Classifier")
 print("Accuracy: ",accuracy_score(y_test,y_pred))
 print("Classification Report: \n",classification_report(y_test,y_pred))
@@ -326,20 +325,20 @@ plt.show()
 # Create a DataFrame to store the results
 results = pd.DataFrame({
     'Model': ['Logistic Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting', 'SVC', 'Gaussian Naive Bayes', 'K Neighbors'],
-    'Accuracy': [accuracy_score(y_test, logreg.predict(X_test_tran)), 
-                 accuracy_score(y_test, dtree.predict(X_test_tran)), 
-                 accuracy_score(y_test, rforest.predict(X_test_tran)), 
-                 accuracy_score(y_test, gbm.predict(X_test_tran)), 
-                 accuracy_score(y_test, svc.predict(X_test_tran)), 
-                 accuracy_score(y_test, gnb.predict(X_test_tran)), 
-                 accuracy_score(y_test, knn.predict(X_test_tran))],
-    'ROC AUC Score': [roc_auc_score(y_test, logreg.predict_proba(X_test_tran)[:, 1]), 
-                      roc_auc_score(y_test, dtree.predict_proba(X_test_tran)[:, 1]), 
-                      roc_auc_score(y_test, rforest.predict_proba(X_test_tran)[:, 1]), 
-                      roc_auc_score(y_test, gbm.predict_proba(X_test_tran)[:, 1]), 
-                      roc_auc_score(y_test, svc.predict_proba(X_test_tran)[:, 1]), 
-                      roc_auc_score(y_test, gnb.predict_proba(X_test_tran)[:, 1]), 
-                      roc_auc_score(y_test, knn.predict_proba(X_test_tran)[:, 1])]
+    'Accuracy': [accuracy_score(y_test, logreg.predict(X_test)), 
+                 accuracy_score(y_test, dtree.predict(X_test)), 
+                 accuracy_score(y_test, rforest.predict(X_test)), 
+                 accuracy_score(y_test, gbm.predict(X_test)), 
+                 accuracy_score(y_test, svc.predict(X_test)), 
+                 accuracy_score(y_test, gnb.predict(X_test)), 
+                 accuracy_score(y_test, knn.predict(X_test))],
+    'ROC AUC Score': [roc_auc_score(y_test, logreg.predict_proba(X_test)[:, 1]), 
+                      roc_auc_score(y_test, dtree.predict_proba(X_test)[:, 1]), 
+                      roc_auc_score(y_test, rforest.predict_proba(X_test)[:, 1]), 
+                      roc_auc_score(y_test, gbm.predict_proba(X_test)[:, 1]), 
+                      roc_auc_score(y_test, svc.predict_proba(X_test)[:, 1]), 
+                      roc_auc_score(y_test, gnb.predict_proba(X_test)[:, 1]), 
+                      roc_auc_score(y_test, knn.predict_proba(X_test)[:, 1])]
 })
 
 # Sort the results by accuracy
