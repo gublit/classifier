@@ -84,6 +84,7 @@ models = [
     ('K Neighbors', KNeighborsClassifier())
 ]
 
+
 def plot_all_models_roc(X_train, y_train, X_test, y_test, models):
     """
     Plot ROC curves for multiple models in a single figure.
