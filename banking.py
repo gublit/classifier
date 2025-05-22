@@ -110,7 +110,6 @@ def plot_all_models_roc(X_train, y_train, X_test, y_test, models):
     for model_name, model in models:
         # Fit model
         model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
         
         # Get predicted probabilities
         y_pred_proba = model.predict_proba(X_test)[:, 1]
@@ -132,5 +131,5 @@ def plot_all_models_roc(X_train, y_train, X_test, y_test, models):
     plt.grid(True)
     
     # Save plot
-    return plt.savefig('roc_comparison.png')
-    
+    plt.savefig('roc_comparison.png')
+    plt.close()
