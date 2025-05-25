@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-data=pd.read_csv('/home/tisinr/MEGA/Dev/models/classifier/dataset/bank.csv',header=0, sep=';')
+data=pd.read_csv('/home/tisinr/Dev/models/classifier/dataset/bank.csv',header=0, sep=';')
 # Display the first few rows of the dataset
 print(data.head())
 
