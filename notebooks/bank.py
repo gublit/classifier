@@ -404,3 +404,5 @@ print("SVC Prediction: ", svc_pred)
 print("Gaussian Naive Bayes Prediction: ", gnb_pred)
 print("K Neighbors Prediction: ", knn_pred)
 
+def main():
+    pass
