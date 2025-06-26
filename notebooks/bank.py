@@ -406,3 +406,6 @@ print("K Neighbors Prediction: ", knn_pred)
 
 def main():
     pass
+
+if __name__ = __main__ :
+    main()
