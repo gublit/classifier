@@ -10,6 +10,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV, StratifiedKFold
+import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -66,10 +68,6 @@ models = [
     ('Gaussian Naive Bayes', GaussianNB()),
     ('K Neighbors', KNeighborsClassifier())
 ]
-
-from sklearn.model_selection import GridSearchCV, StratifiedKFold
-import logging
-
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
