@@ -127,3 +127,6 @@ if __name__ == '__main__':
 
     plot_roc_curve(y_test, y_pred_proba_results)
     logging.info("Model training and evaluation complete. ROC curve saved.")
+
+def main():
+    pass
