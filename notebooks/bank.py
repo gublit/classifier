@@ -10,11 +10,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler,OneHotEncoder,LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import warnings
+warnings.filterwarnings('ignore')
 
 data=pd.read_csv('/home/tisinr/MEGA/Dev/models/classifier/dataset/bank.csv',header=0, sep=';')
 # Display the first few rows of the dataset
