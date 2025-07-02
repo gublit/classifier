@@ -2,10 +2,10 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
-from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve,auc
+from sklearn.metrics import (accuracy_score, classification_report, confusion_matrix,
+                            roc_auc_score, roc_curve,auc)
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler,OneHotEncoder,LabelEncoder
 from sklearn.compose import ColumnTransformer
@@ -17,7 +17,7 @@ import joblib
 import warnings
 warnings.filterwarnings('ignore')
 
-data=pd.read_csv('/home/tisinr/MEGA/Dev/models/classifier/dataset/bank.csv',header=0, sep=';')
+data=pd.read_csv('/home/tisinr/Dev/models/classifier/dataset/bank.csv',header=0, sep=';')
 # Display the first few rows of the dataset
 print(data.head())
 
@@ -45,11 +45,11 @@ data=rename_n_change(data)
 
 data['contact'].value_counts()
 
-data['poutcome'].value_counts(dropna=False)
-
-data.replace('unknown', pd.NA, inplace=True)
-
-data.isnull().sum()
+# Drop 'poutcome' column as it has high cardinality and is not useful for prediction
+if 'poutcome' in data.columns:
+    print("Dropping 'poutcome' column due to more than 80% unknown values.")
+    # Drop the 'poutcome' column    
+data.drop('poutcome', axis=1, inplace=True)
 
 data['contact'].value_counts()/len(data)*100
 
@@ -251,29 +251,6 @@ plt.title('Receiver Operating Characteristic')
 plt.legend(loc='lower right')
 plt.show()
 
-## SVM with Scikit-learn training steps
-#Support Vector Classifier
-svc=SVC(probability=True)
-svc.fit(X_train,y_train)
-y_pred=svc.predict(X_test)
-y_pred_proba=svc.predict_proba(X_test)[:,1]
-print("Support Vector Classifier")
-print("Accuracy: ",accuracy_score(y_test,y_pred))
-print("Classification Report: \n",classification_report(y_test,y_pred))
-print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
-print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
-fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-roc_auc = auc(fpr, tpr)
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, label= f'Support Vector Classifier (area = {roc_auc:.2f}')
-plt.plot([0, 1], [0, 1], 'k--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic')
-plt.legend(loc='lower right')
-plt.show()
 
 ## GaussianNB with Scikit-learn training steps
 #Gaussian Naive Bayes
@@ -325,19 +302,17 @@ plt.show()
 
 # Create a DataFrame to store the results
 results = pd.DataFrame({
-    'Model': ['Logistic Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting', 'SVC', 'Gaussian Naive Bayes', 'K Neighbors'],
+    'Model': ['Logistic Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting', 'Gaussian Naive Bayes', 'K Neighbors'],
     'Accuracy': [accuracy_score(y_test, logreg.predict(X_test)), 
                  accuracy_score(y_test, dtree.predict(X_test)), 
                  accuracy_score(y_test, rforest.predict(X_test)), 
-                 accuracy_score(y_test, gbm.predict(X_test)), 
-                 accuracy_score(y_test, svc.predict(X_test)), 
+                 accuracy_score(y_test, gbm.predict(X_test)),
                  accuracy_score(y_test, gnb.predict(X_test)), 
                  accuracy_score(y_test, knn.predict(X_test))],
     'ROC AUC Score': [roc_auc_score(y_test, logreg.predict_proba(X_test)[:, 1]), 
                       roc_auc_score(y_test, dtree.predict_proba(X_test)[:, 1]), 
                       roc_auc_score(y_test, rforest.predict_proba(X_test)[:, 1]), 
-                      roc_auc_score(y_test, gbm.predict_proba(X_test)[:, 1]), 
-                      roc_auc_score(y_test, svc.predict_proba(X_test)[:, 1]), 
+                      roc_auc_score(y_test, gbm.predict_proba(X_test)[:, 1]),  
                       roc_auc_score(y_test, gnb.predict_proba(X_test)[:, 1]), 
                       roc_auc_score(y_test, knn.predict_proba(X_test)[:, 1])]
 })
@@ -352,7 +327,6 @@ joblib.dump(logreg, 'logistic_regression_model.pkl')
 joblib.dump(dtree, 'decision_tree_model.pkl')
 joblib.dump(rforest, 'random_forest_model.pkl')
 joblib.dump(gbm, 'gradient_boosting_model.pkl')
-joblib.dump(svc, 'svc_model.pkl')
 joblib.dump(gnb, 'gaussian_nb_model.pkl')
 joblib.dump(knn, 'knn_model.pkl')
 joblib.dump(pre_pipeline, 'preprocessing_pipeline.pkl')
@@ -363,7 +337,6 @@ logreg = joblib.load('logistic_regression_model.pkl')
 dtree = joblib.load('decision_tree_model.pkl')
 rforest = joblib.load('random_forest_model.pkl')
 gbm = joblib.load('gradient_boosting_model.pkl')
-svc = joblib.load('svc_model.pkl')
 gnb = joblib.load('gaussian_nb_model.pkl')
 knn = joblib.load('knn_model.pkl')
 
@@ -393,7 +366,6 @@ logreg_pred = logreg.predict(new_data)
 dtree_pred = dtree.predict(new_data)
 rforest_pred = rforest.predict(new_data)
 gbm_pred = gbm.predict(new_data)
-svc_pred = svc.predict(new_data)
 gnb_pred = gnb.predict(new_data)
 knn_pred = knn.predict(new_data)
 # Print the predictions
@@ -401,7 +373,6 @@ print("Logistic Regression Prediction: ", logreg_pred)
 print("Decision Tree Prediction: ", dtree_pred)
 print("Random Forest Prediction: ", rforest_pred)
 print("Gradient Boosting Prediction: ", gbm_pred)
-print("SVC Prediction: ", svc_pred)
 print("Gaussian Naive Bayes Prediction: ", gnb_pred)
 print("K Neighbors Prediction: ", knn_pred)
 
