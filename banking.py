@@ -5,7 +5,8 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve, auc
+from sklearn.metrics import (accuracy_score, classification_report, confusion_matrix,
+                            roc_auc_score, roc_curve, auc)
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
@@ -26,7 +27,7 @@ print(data.head())
 X = data.drop(columns=['y'])
 y = data['y']
 
-# Classic feature lists (example, adjust as needed)
+# Classic feature lists 
 numeric_features = ['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'previous']
 categorical_features = ['job', 'marital', 'education', 'month', 'housing', 'loan', 'default']
 
