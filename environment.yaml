@@ -1,0 +1,14 @@
+name: clasfi
+channels:
+  - conda-forge
+dependencies:
+  - imbalanced-learn
+  - ipykernel
+  - lightgbm
+  - matplotlib
+  - pandas
+  - python=3.11
+  - seaborn
+  - xgboost
+
+prefix: "/home/tisinr/.local/share/mamba/envs/clasfi"
