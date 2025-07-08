@@ -18,9 +18,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+from pathlib import Path
+
+# Construct the path to the data file relative to the script's location
+script_path = Path(__file__).resolve()
+# Modify the number of .parent calls if your script is nested deeper.
+file_path = script_path.parent / 'dataset' / 'bank.csv'
 
 # Load data
-data = pd.read_csv('/home/tisinr/Dev/models/classifier/dataset/bank.csv', header=0, sep=';')
+data = pd.read_csv(file_path, header=0, sep=';')
 print(data.head())
 
 # Assign features and labels (classic/original)
@@ -83,9 +89,18 @@ def train_and_evaluate_model(model_name, model, X_train, y_train, X_test, y_test
     logging.info("Classification Report:\n" + classification_report(y_test, y_pred))
     logging.info("Confusion Matrix:\n" + str(confusion_matrix(y_test, y_pred)))
 
-    # Save the trained model
-    joblib.dump(model, f'{model_name.lower().replace(" ", "_")}_model.pkl')
+    # Define the output directory and ensure it exists
+    output_dir = Path('saved_models')
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save the trained model to the new directory
+    model_filename = f'{model_name.lower().replace(" ", "_")}_model.pkl'
+    model_path = output_dir / model_filename
+    joblib.dump(model, model_path)
+    logging.info(f"Model saved to {model_path}")
+    
     return y_pred_proba
+
 
 def plot_roc_curve(y_test, y_pred_proba_dict, filename='roc_comparison.png'):
     """Plots ROC curves for all models."""

@@ -223,3 +223,6 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Saved models
+saved_models/
