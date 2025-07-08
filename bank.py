@@ -317,14 +317,14 @@ results = results.sort_values(by='Accuracy', ascending=False)
 print(results)
 
 # Save the model
-joblib.dump(logreg, 'logistic_regression_model.pkl')
-joblib.dump(dtree, 'decision_tree_model.pkl')
-joblib.dump(rforest, 'random_forest_model.pkl')
-joblib.dump(gbm, 'gradient_boosting_model.pkl')
-joblib.dump(gnb, 'gaussian_nb_model.pkl')
-joblib.dump(knn, 'knn_model.pkl')
-joblib.dump(pre_pipeline, 'preprocessing_pipeline.pkl')
-joblib.dump(label_encoder, 'label_encoder.pkl')
+joblib.dump(logreg, '../saved_models/logistic_regression_model.pkl')
+joblib.dump(dtree, '../saved_models/decision_tree_model.pkl')
+joblib.dump(rforest, '../saved_models/random_forest_model.pkl')
+joblib.dump(gbm, '../saved_models/gradient_boosting_model.pkl')
+joblib.dump(gnb, '../saved_models/gaussian_nb_model.pkl')
+joblib.dump(knn, '../saved_models/knn_model.pkl')
+joblib.dump(pre_pipeline, '../saved_models/preprocessing_pipeline.pkl')
+joblib.dump(label_encoder, '../saved_models/label_encoder.pkl')
 
 # Load the model
 logreg = joblib.load('logistic_regression_model.pkl')
