@@ -65,7 +65,6 @@ models = [
     ('Decision Tree', DecisionTreeClassifier()),
     ('Random Forest', RandomForestClassifier(n_estimators=100)),
     ('Gradient Boosting', GradientBoostingClassifier()),
-    ('Support Vector', SVC(probability=True)),
     ('Gaussian Naive Bayes', GaussianNB()),
     ('K Neighbors', KNeighborsClassifier())
 ]
