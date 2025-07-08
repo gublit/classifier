@@ -1,377 +1,152 @@
-# Import necessary libraries
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import (accuracy_score, classification_report, confusion_matrix,
-                            roc_auc_score, roc_curve,auc)
+import pandas as pd
+import joblib
+from pathlib import Path
+import warnings
+
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler,OneHotEncoder,LabelEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import joblib
-import warnings
+from imblearn.over_sampling import SMOTE
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
+
 warnings.filterwarnings('ignore')
-from pathlib import Path
 
-# Construct the path to the data file relative to the script's location
-script_path = Path(__file__).resolve()
-# Modify the number of .parent calls if your script is nested deeper.
-file_path = script_path.parent / 'dataset' / 'bank.csv'
+def load_and_prepare_data(csv_path):
+    """Loads and prepares the bank marketing data."""
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Data file not found at: {csv_path}")
 
-# Load data
-data = pd.read_csv(file_path, header=0, sep=';')
+    data = pd.read_csv(csv_path, sep=';')
 
-# Display the first few rows of the dataset
-print(data.head())
-
-def rename_n_change(data):
-    # Rename columns for better readability
+    # Rename columns
     data.rename(columns={
-        'marital':'marital_status',
-        'default':'credit_default',
-        'housing':'housing_loan',
-        'loan':'personal_loan',
-        'y':'target'}, inplace=True)
-    #change data types
-    data['target'] = data['target'].astype('category')
-    data['marital_status'] = data['marital_status'].astype('category')
-    data['education'] = data['education'].astype('category')
-    data['job'] = data['job'].astype('category')
-    data['contact'] = data['contact'].astype('category')
-    data['month'] = data['month'].astype('category')
-    data['day'] = data['day'].astype('category')
-    data['credit_default'] = data['credit_default'].astype('category')
-    data['housing_loan'] = data['housing_loan'].astype('category')
-    data['personal_loan'] = data['personal_loan'].astype('category')
+        'marital': 'marital_status',
+        'default': 'credit_default',
+        'housing': 'housing_loan',
+        'loan': 'personal_loan',
+        'y': 'response'
+    }, inplace=True)
+
+    # Drop poutcome column
+    if 'poutcome' in data.columns:
+        data.drop('poutcome', axis=1, inplace=True)
+
     return data
-data=rename_n_change(data)
 
-data.drop(columns=['poutcome','contact'], inplace=True)
+def get_preprocessing_pipeline():
+    """Returns the preprocessing pipeline."""
+    numeric_features = ['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'previous']
+    categorical_features = ['job', 'marital_status', 'education', 'month', 'housing_loan', 'personal_loan', 'contact', 'credit_default']
 
-#EDA
-data.info()
+    pre_processor = ColumnTransformer(
+        transformers=[
+            ('num', StandardScaler(), numeric_features),
+            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+        ]
+    )
+    return Pipeline(steps=[('preprocessor', pre_processor)])
 
-#Distribution plot of target variable
-plt.figure(figsize=(8, 6))
-sns.set_style('darkgrid')
-sns.countplot(x='target', data=data)
-plt.title('Distribution of Target Variable')
-plt.xlabel('target')
-plt.ylabel('Count')
-plt.show()
+def train_and_evaluate_models(X_train, y_train, X_test, y_test):
+    """Trains and evaluates multiple classification models."""
+    models = {
+        'Logistic Regression': LogisticRegression(class_weight='balanced'),
+        'Decision Tree': DecisionTreeClassifier(),
+        'Random Forest': RandomForestClassifier(class_weight='balanced', n_estimators=100),
+        'Gradient Boosting': GradientBoostingClassifier(),
+        'Gaussian Naive Bayes': GaussianNB(),
+        'K-Nearest Neighbors': KNeighborsClassifier()
+    }
 
+    results = {}
+    trained_models = {}
 
-plt.figure(figsize=(8, 6))
-data['housing_loan'].value_counts().plot(kind='bar',color=['blue', 'orange'])
-plt.title('Distribution of Housing Loan')
-plt.xlabel('Housing Loan')
-plt.ylabel('Count')
-plt.show()
+    for name, model in models.items():
+        print(f"--- Training {name} ---")
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        y_pred_proba = model.predict_proba(X_test)[:, 1]
 
-# Distribution plot of numeric features
-plt.figure
-numeric_ft = data[['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'previous']]
-sns.pairplot(numeric_ft)
-plt.title('Pairplot of Numeric Features')
-plt.show()
+        accuracy = accuracy_score(y_test, y_pred)
+        roc_auc = roc_auc_score(y_test, y_pred_proba)
+        
+        print(f"Accuracy: {accuracy:.4f}")
+        print(f"ROC AUC Score: {roc_auc:.4f}")
+        print("Classification Report:")
+        print(classification_report(y_test, y_pred))
+        
+        results[name] = {'Accuracy': accuracy, 'ROC_AUC_Score': roc_auc}
+        trained_models[name] = model
 
-#Correlation matrix for numeric features
-plt.figure(figsize=(12, 8))
-correlation_matrix = numeric_ft.corr()
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
-plt.title('Correlation Matrix')
-plt.show()
+    return trained_models, pd.DataFrame.from_dict(results, orient='index').sort_values(by='ROC_AUC_Score', ascending=False)
 
-data['housing_loan'].value_counts()
+def save_artifacts(models, pipeline, encoder, save_dir):
+    """Saves trained models and preprocessing artifacts."""
+    save_dir.mkdir(exist_ok=True)
+    
+    name_map = {
+        'Logistic Regression': 'logreg',
+        'Decision Tree': 'dtree',
+        'Random Forest': 'rforest',
+        'Gradient Boosting': 'gbm',
+        'Gaussian Naive Bayes': 'gnb',
+        'K-Nearest Neighbors': 'knn'
+    }
 
-##category distribution
-data['job'].value_counts()/len(data)*100
-
-X=data.drop(columns=['target'])
-y=data['target']
-print(X.shape)
-print(y.shape)
-
-data['target'].value_counts()
-data['target'].value_counts().plot(kind='bar', color=['#FF9999', '#66B3FF'])
-plt.title('Distribution of target Variable')
-plt.xlabel('target')
-plt.ylabel('Count')
-plt.xticks(rotation=0)
-plt.show()
-
-## Apply preprocessing steps to the dataset
-# Create a pipeline for preprocessing
-numeric_features = ['age', 'balance', 'day', 'duration', 'campaign', 'pdays', 'previous']
-categorical_features = ['job', 'marital_status', 'education', 'month', 'housing_loan', 'personal_loan', 'credit_default']
-# Create a column transformer to apply different preprocessing steps to different columns
-pre_processor = ColumnTransformer(
-    transformers=[
-        ('num', StandardScaler(), numeric_features),
-        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
-    ]
-)
-# Create a pipeline that first applies the preprocessor and then fits a classifier
-pre_pipeline = Pipeline(steps=[
-    ('preprocessor', pre_processor)
-])
-
-#Split the data into training and testing sets
-X_train,X_test,y_train,y_test = train_test_split(X,y,train_size=0.8,stratify=y,random_state=78)
-
-# Label encode the target variable
-label_encoder = LabelEncoder()
-y_train = label_encoder.fit_transform(y_train)
-y_test = label_encoder.transform(y_test)
-
-print(y_test.shape)
-print(y_train.shape)
-
-y_test.view()
-
-# Fit preprocessing on training data and transform both sets
-X_train = pre_pipeline.fit_transform(X_train)
-X_test = pre_pipeline.transform(X_test)  # No fitting on test data!
-
-print(X_train.shape)
-print(X_test.shape)
-
-
-y_train.shape
-
-## Logic Regression with Scikit-learn training steps
-
-#Instantiate and train
-logreg=LogisticRegression()
-logreg.fit(X_train,y_train)
-
-# Predict, Evaluate and plot
-y_pred=logreg.predict(X_test)
-y_pred_proba=logreg.predict_proba(X_test)[:,1]
-print("Logistic Regression")
-print("Accuracy: ",accuracy_score(y_test,y_pred))
-print("Classification Report: \n",classification_report(y_test,y_pred))
-print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
-print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
-fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-roc_auc = auc(fpr, tpr)
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, label= f'Logistic Regression (area = {roc_auc:.2f}')
-plt.plot([0, 1], [0, 1], 'k--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic')
-plt.legend(loc='lower right')
-plt.show()     
-
-## Decision Tree with Scikit-learn training steps
-#Decision Tree Classifier
-dtree=DecisionTreeClassifier()
-dtree.fit(X_train,y_train)
-y_pred=dtree.predict(X_test)
-y_pred_proba=dtree.predict_proba(X_test)[:,1]
-print("Decision Tree Classifier")
-print("Accuracy: ",accuracy_score(y_test,y_pred))
-print("Classification Report: \n",classification_report(y_test,y_pred))
-print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
-print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
-fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-roc_auc = auc(fpr, tpr)
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, label= f'Decision Tree Classifier (area = {roc_auc:.2f}')
-plt.plot([0, 1], [0, 1], 'k--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic')
-plt.legend(loc='lower right')
-plt.show()
-
-## Random Forest with Scikit-learn training steps
-
-#Random Forest Classifier
-rforest=RandomForestClassifier(n_estimators=100)
-rforest.fit(X_train,y_train)
-y_pred=rforest.predict(X_test)
-y_pred_proba=rforest.predict_proba(X_test)[:,1]
-print("Random Forest Classifier")
-print("Accuracy: ",accuracy_score(y_test,y_pred))
-print("Classification Report: \n",classification_report(y_test,y_pred))
-print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
-print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
-fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-roc_auc = auc(fpr, tpr)
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, label= f'Random Forest Classifier (area = {roc_auc:.2f}')
-plt.plot([0, 1], [0, 1], 'k--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic')
-plt.legend(loc='lower right')
-plt.show()
-
-## Gradient Boosting with Scikit-learn training steps
-
-#Gradient Boosting Classifier
-gbm=GradientBoostingClassifier()
-gbm.fit(X_train,y_train)
-y_pred=gbm.predict(X_test)
-y_pred_proba=gbm.predict_proba(X_test)[:,1]
-print("Gradient Boosting Classifier")
-print("Accuracy: ",accuracy_score(y_test,y_pred))
-print("Classification Report: \n",classification_report(y_test,y_pred))
-print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
-print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
-fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-roc_auc = auc(fpr, tpr)
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, label= f'Gradient Boosting Classifier (area = {roc_auc:.2f}')
-plt.plot([0, 1], [0, 1], 'k--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic')
-plt.legend(loc='lower right')
-plt.show()
-
-
-## GaussianNB with Scikit-learn training steps
-#Gaussian Naive Bayes
-gnb=GaussianNB()
-gnb.fit(X_train,y_train)
-y_pred=gnb.predict(X_test)
-y_pred_proba=gnb.predict_proba(X_test)[:,1]
-print("Gaussian Naive Bayes")
-print("Accuracy: ",accuracy_score(y_test,y_pred))
-print("Classification Report: \n",classification_report(y_test,y_pred))
-print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
-print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
-fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-roc_auc = auc(fpr, tpr)
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, label= f'Gaussian Naive Bayes ( area = {roc_auc:.2f}')
-plt.plot([0, 1], [0, 1], 'k--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic')
-plt.legend(loc='lower right')
-plt.show()
-
-##KNeighbors with Scikit-learn training steps
-#K Neighbors Classifier
-knn=KNeighborsClassifier()
-knn.fit(X_train,y_train)
-y_pred=knn.predict(X_test)
-y_pred_proba=knn.predict_proba(X_test)[:,1]
-print("K Neighbors Classifier")
-print("Accuracy: ",accuracy_score(y_test,y_pred))
-print("Classification Report: \n",classification_report(y_test,y_pred))
-print("Confusion Matrix: \n",confusion_matrix(y_test,y_pred))
-print("ROC AUC Score: ",roc_auc_score(y_test,y_pred_proba))
-fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-roc_auc = auc(fpr, tpr)
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, label='K Neighbors Classifier (area = {:.2f})'.format(roc_auc))
-plt.plot([0, 1], [0, 1], 'k--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('Receiver Operating Characteristic')
-plt.legend(loc='lower right')
-plt.show()
-
-# Create a DataFrame to store the results
-results = pd.DataFrame({
-    'Model': ['Logistic Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting', 'Gaussian Naive Bayes', 'K Neighbors'],
-    'Accuracy': [accuracy_score(y_test, logreg.predict(X_test)), 
-                 accuracy_score(y_test, dtree.predict(X_test)), 
-                 accuracy_score(y_test, rforest.predict(X_test)), 
-                 accuracy_score(y_test, gbm.predict(X_test)),
-                 accuracy_score(y_test, gnb.predict(X_test)), 
-                 accuracy_score(y_test, knn.predict(X_test))],
-    'ROC AUC Score': [roc_auc_score(y_test, logreg.predict_proba(X_test)[:, 1]), 
-                      roc_auc_score(y_test, dtree.predict_proba(X_test)[:, 1]), 
-                      roc_auc_score(y_test, rforest.predict_proba(X_test)[:, 1]), 
-                      roc_auc_score(y_test, gbm.predict_proba(X_test)[:, 1]),  
-                      roc_auc_score(y_test, gnb.predict_proba(X_test)[:, 1]), 
-                      roc_auc_score(y_test, knn.predict_proba(X_test)[:, 1])]
-})
-
-# Sort the results by accuracy
-results = results.sort_values(by='Accuracy', ascending=False)
-# Display the results
-print(results)
-
-# Save the model
-joblib.dump(logreg, '../saved_models/logistic_regression_model.pkl')
-joblib.dump(dtree, '../saved_models/decision_tree_model.pkl')
-joblib.dump(rforest, '../saved_models/random_forest_model.pkl')
-joblib.dump(gbm, '../saved_models/gradient_boosting_model.pkl')
-joblib.dump(gnb, '../saved_models/gaussian_nb_model.pkl')
-joblib.dump(knn, '../saved_models/knn_model.pkl')
-joblib.dump(pre_pipeline, '../saved_models/preprocessing_pipeline.pkl')
-joblib.dump(label_encoder, '../saved_models/label_encoder.pkl')
-
-# Load the model
-logreg = joblib.load('logistic_regression_model.pkl')
-dtree = joblib.load('decision_tree_model.pkl')
-rforest = joblib.load('random_forest_model.pkl')
-gbm = joblib.load('gradient_boosting_model.pkl')
-gnb = joblib.load('gaussian_nb_model.pkl')
-knn = joblib.load('knn_model.pkl')
-
-
-# Make predictions on new data
-new_data = pd.DataFrame({
-    'age': [30],
-    'balance': [1000],
-    'day': [15],
-    'duration': [200],
-    'campaign': [1],
-    'pdays': [999],
-    'previous': [0],
-    'job': ['admin.'],
-    'marital_status': ['single'],
-    'education': ['university.degree'],
-    'month': ['may'],
-    'housing_loan': ['yes'],
-    'personal_loan': ['no'],
-    'credit_default': ['no']
-})
-
-# Preprocess the new data
-new_data = pd.DataFrame(pre_processor.transform(new_data), columns=pre_processor.get_feature_names_out())
-# Make predictions
-logreg_pred = logreg.predict(new_data)
-dtree_pred = dtree.predict(new_data)
-rforest_pred = rforest.predict(new_data)
-gbm_pred = gbm.predict(new_data)
-gnb_pred = gnb.predict(new_data)
-knn_pred = knn.predict(new_data)
-# Print the predictions
-print("Logistic Regression Prediction: ", logreg_pred)
-print("Decision Tree Prediction: ", dtree_pred)
-print("Random Forest Prediction: ", rforest_pred)
-print("Gradient Boosting Prediction: ", gbm_pred)
-print("Gaussian Naive Bayes Prediction: ", gnb_pred)
-print("K Neighbors Prediction: ", knn_pred)
+    for name, model in models.items():
+        short_name = name_map.get(name, name.lower().replace(' ', '_'))
+        filename = short_name + '_model.pkl'
+        joblib.dump(model, save_dir / filename)
+    
+    joblib.dump(pipeline, save_dir / 'pre_pipeline.pkl')
+    joblib.dump(encoder, save_dir / 'label_encoder.pkl')
+    print(f"\nModels and artifacts saved to '{save_dir}'")
 
 def main():
-    pass
+    """Main function to run the full pipeline."""
+    # Define paths relative to the project root
+    csv_path = Path('dataset') / 'bank.csv'
+    save_dir = Path('saved_models')
 
-if __name__ == '__main__' :
+    # Load and prepare data
+    data = load_and_prepare_data(csv_path)
+
+    # Define features and target
+    X = data.drop(columns=['response'])
+    y = data['response']
+
+    # Split data
+    X_train, X_test, y_train_raw, y_test_raw = train_test_split(X, y, train_size=0.8, stratify=y, random_state=78)
+
+    # Preprocess target variable
+    label_encoder = LabelEncoder()
+    y_train = label_encoder.fit_transform(y_train_raw)
+    y_test = label_encoder.transform(y_test_raw)
+
+    # Preprocess features
+    pre_pipeline = get_preprocessing_pipeline()
+    X_train_processed = pre_pipeline.fit_transform(X_train)
+    X_test_processed = pre_pipeline.transform(X_test)
+
+    # Handle imbalance with SMOTE
+    smote = SMOTE(random_state=78)
+    X_train_resampled, y_train_resampled = smote.fit_resample(X_train_processed, y_train)
+
+    # Train and evaluate models
+    trained_models, results_df = train_and_evaluate_models(X_train_resampled, y_train_resampled, X_test_processed, y_test)
+    
+    print("\n--- Model Performance Summary ---")
+    print(results_df)
+
+    # Save models and artifacts
+    save_artifacts(trained_models, pre_pipeline, label_encoder, save_dir)
+
+if __name__ == '__main__':
     main()
