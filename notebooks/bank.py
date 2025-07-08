@@ -97,8 +97,6 @@ plt.show()
 data['job'].fillna(data['job'].mode()[0], inplace=True)
 data['education'].fillna(data['education'].mode()[0], inplace=True)
 
-data.isnull().sum()
-
 data['housing_loan'].value_counts()
 
 ##category distribution
