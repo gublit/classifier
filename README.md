@@ -8,39 +8,14 @@ This project demonstrates a comprehensive workflow for building, evaluating, and
 ├── bank.py
 ├── bankcopy.py
 ├── banking.py
-├── env.yml / environment.yaml
+├── environment.yaml
 ├── LICENSE
 ├── README.md
 ├── requirements.txt
 ├── roc_comparison.png
 ├── support_vector_model.pkl
-├── teams_data.csv
-├── dataset/
-│   ├── bank.csv
-│   ├── decision_tree_model.pkl
-│   ├── gaussian_naive_bayes_model.pkl
-│   ├── gradient_boosting_model.pkl
-│   ├── k_neighbors_model.pkl
-│   ├── label_encoder.pkl
-│   ├── logistic_regression_(tuned)_model.pkl
-│   ├── pre_pipeline.pkl
-│   ├── random_forest_model.pkl
-│   ├── roc_comparison.png
-│   └── saved_models/
-│       └── ... (model files)
-├── notebooks/
-│   ├── bank_model.pkl
-│   ├── bank.ipynb
-│   ├── banking.ipynb
-│   ├── tempo.ipynb
-│   └── test.ipynb
-├── plots/
-│   ├── correlation_matrix.png
-│   ├── response_distribution.png
-│   ├── roc_comparison.png
-│   └── roc_curves.png
-├── saved_models/
-│   └── ... (model files)
+├───.git/
+├───.vscode/
 ```
 
 ## Key Components
@@ -56,11 +31,12 @@ This project demonstrates a comprehensive workflow for building, evaluating, and
 - **notebooks/banking.ipynb, tempo.ipynb, test.ipynb**: Additional or experimental notebooks for model development and testing.
 
 ### Scripts
-- **bank.py, bankcopy.py, banking.py**: Python scripts for data processing, model training, or utility functions. (See code for details.)
+- **bank.py**: A basic script that loads data, preprocesses it, trains multiple models, evaluates them, and saves the models and preprocessing pipeline.
+- **banking.py**: An advanced version of `bank.py` with logging, hyperparameter tuning for Logistic Regression, and plotting of a consolidated ROC curve.
+- **bankcopy.py**: A class-based implementation of the same workflow. It encapsulates the logic into a `BankingClassifier` class, which makes it more modular and reusable. It also includes EDA plot generation.
 
 ### Data
 - **dataset/bank.csv**: The main dataset used for training and evaluation.
-- **teams_data.csv**: Additional data (purpose may vary).
 
 ### Models
 - **saved_models/** and **dataset/saved_models/**: Serialized model files (e.g., `.pkl` files for scikit-learn models, label encoders, and preprocessing pipelines).
@@ -70,14 +46,14 @@ This project demonstrates a comprehensive workflow for building, evaluating, and
 
 ### Environment & Dependencies
 - **requirements.txt**: Python package dependencies for the project.
-- **env.yml / environment.yaml**: Conda environment configuration files.
+- **environment.yaml**: Conda environment configuration file.
 
 ## How to Run
 1. **Set up the environment**
    - Using Conda:
      ```sh
      conda env create -f environment.yaml
-     conda activate <env_name>
+     conda activate clasfi
      ```
    - Or using pip:
      ```sh
@@ -92,7 +68,14 @@ This project demonstrates a comprehensive workflow for building, evaluating, and
      ```sh
      python bank.py
      ```
-   - (See script files for specific usage.)
+     or
+      ```sh
+     python banking.py
+     ```
+     or
+      ```sh
+     python bankcopy.py
+     ```
 
 ## Features
 - End-to-end tabular classification pipeline
@@ -105,7 +88,7 @@ This project demonstrates a comprehensive workflow for building, evaluating, and
 
 ## Requirements
 - Python 3.8+
-- pandas, scikit-learn, imbalanced-learn, matplotlib, seaborn, joblib, (see requirements.txt)
+- pandas, scikit-learn, imbalanced-learn, matplotlib, seaborn, joblib, (see requirements.txt or environment.yaml for details)
 
 ## License
 See [LICENSE](LICENSE) for details.
