@@ -192,7 +192,7 @@ class BankingClassifier:
         print(f"Artifacts saved to {self.models_dir}")
 
     def predict_on_new_data(self, new_data):
-        print("Making prediction on new data...")
+        print("Making predictions on new data using the top 3 models...")
         if self.pre_pipeline is None:
             raise Exception("Preprocessing pipeline is not fitted. Run preprocessing first.")
 
@@ -204,17 +204,27 @@ class BankingClassifier:
             
         processed_new_data = self.pre_pipeline.transform(new_data)
 
-        best_model_name = self.results.iloc[0]["Model"]
-        best_model = self.models[best_model_name]
+        top_3_models = self.results.head(3)
+        predictions = {}
 
-        prediction_encoded = best_model.predict(processed_new_data)
-        prediction_proba = best_model.predict_proba(processed_new_data)
+        for index, row in top_3_models.iterrows():
+            model_name = row["Model"]
+            model = self.models[model_name]
 
-        prediction = self.label_encoder.inverse_transform(prediction_encoded)
+            prediction_encoded = model.predict(processed_new_data)
+            prediction_proba = model.predict_proba(processed_new_data)
+            prediction = self.label_encoder.inverse_transform(prediction_encoded)
+            
+            predictions[model_name] = {
+                "prediction": prediction[0],
+                "probabilities": prediction_proba[0]
+            }
 
-        print(f"Best Model ({best_model_name}) Prediction: {prediction[0]}")
-        print(f"Prediction Probabilities: {prediction_proba[0]}")
-        return prediction, prediction_proba
+            print(f"\n--- {model_name} ---")
+            print(f"Prediction: {prediction[0]}")
+            print(f"Prediction Probabilities: {prediction_proba[0]}")
+
+        return predictions
 
     def run(self):
         self.load_and_prepare_data()
