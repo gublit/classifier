@@ -51,19 +51,13 @@ This project provides a complete workflow for building and evaluating machine le
     ```sh
     python main.py
     ```
-    This will execute the entire pipeline, from data loading to model saving, and will print the progress to the console.
-
-3.  **Make Predictions on New Data**:
-    To make predictions on a new data file, use the `--predict` flag followed by the path to your CSV file. The CSV file should have the same format as `dataset/bank.csv`.
-    ```sh
-    python main.py --predict /path/to/your/new_data.csv
-    ```
+    This will execute the entire pipeline, from data loading to model saving, and will print the progress to the console. The script will also output predictions from the top 3 best performing models on a sample data point.
 
 ## Features
 - End-to-end classification pipeline in a single, well-structured script.
 - Object-oriented design for modularity and reusability.
 - Integrated EDA and visualization.
-- Hyperparameter tuning for improved model performance.
+- Compares multiple models and uses the top 3 for prediction.
 - Detailed progress bars to monitor model training.
 
 ## Requirements
