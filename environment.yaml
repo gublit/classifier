@@ -2,13 +2,11 @@ name: clasfi
 channels:
   - conda-forge
 dependencies:
-  - imbalanced-learn
-  - ipykernel
-  - lightgbm
-  - matplotlib
-  - pandas
   - python=3.11
+  - pandas
+  - scikit-learn
+  - matplotlib
   - seaborn
-  - xgboost
-
-prefix: "/home/tisinr/.local/share/mamba/envs/clasfi"
+  - imbalanced-learn
+  - joblib
+  - tqdm
