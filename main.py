@@ -135,34 +135,34 @@ class BankingClassifier:
         print("Training and evaluating models...")
         plt.figure(figsize=(10, 8))
 
-        with tqdm(self.models.items()) as pbar:
-            for name, model in pbar:
-                pbar.set_description(f"Training {name}")
+        for name, model in self.models.items():
+            with tqdm(total=1, desc=f"Training {name}") as pbar:
                 start_time = time.time()
                 model.fit(self.X_train, self.y_train)
                 end_time = time.time()
                 training_time = end_time - start_time
+                pbar.update(1)
 
-                y_pred = model.predict(self.X_test)
-                y_pred_proba = model.predict_proba(self.X_test)[:, 1]
+            y_pred = model.predict(self.X_test)
+            y_pred_proba = model.predict_proba(self.X_test)[:, 1]
 
-                accuracy = accuracy_score(self.y_test, y_pred)
-                roc_auc = roc_auc_score(self.y_test, y_pred_proba)
+            accuracy = accuracy_score(self.y_test, y_pred)
+            roc_auc = roc_auc_score(self.y_test, y_pred_proba)
 
-                new_row = pd.DataFrame(
-                    [
-                        {
-                            "Model": name,
-                            "Accuracy": accuracy,
-                            "ROC AUC Score": roc_auc,
-                            "Training Time (s)": training_time,
-                        }
-                    ]
-                )
-                self.results = pd.concat([self.results, new_row], ignore_index=True)
+            new_row = pd.DataFrame(
+                [
+                    {
+                        "Model": name,
+                        "Accuracy": accuracy,
+                        "ROC AUC Score": roc_auc,
+                        "Training Time (s)": training_time,
+                    }
+                ]
+            )
+            self.results = pd.concat([self.results, new_row], ignore_index=True)
 
-                fpr, tpr, _ = roc_curve(self.y_test, y_pred_proba)
-                plt.plot(fpr, tpr, label=f"{name} (AUC = {roc_auc:.2f})")
+            fpr, tpr, _ = roc_curve(self.y_test, y_pred_proba)
+            plt.plot(fpr, tpr, label=f"{name} (AUC = {roc_auc:.2f})")
 
         plt.plot([0, 1], [0, 1], "k--")
         plt.xlim([0.0, 1.0])
