@@ -1,3 +1,4 @@
+import time
 import warnings
 from pathlib import Path
 
@@ -13,7 +14,6 @@ from sklearn.metrics import (
     accuracy_score,
     auc,
     classification_report,
-    confusion_matrix,
     roc_auc_score,
     roc_curve,
 )
@@ -23,15 +23,17 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
+from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
 
 class BankingClassifier:
-    def __init__(self, data_path, models_dir, plots_dir):
-        self.data_path = Path(data_path)
-        self.models_dir = Path(models_dir)
-        self.plots_dir = Path(plots_dir)
+    def __init__(self, base_dir):
+        self.base_dir = Path(base_dir)
+        self.data_path = self.base_dir / "dataset" / "bank.csv"
+        self.models_dir = self.base_dir / "saved_models"
+        self.plots_dir = self.base_dir / "plots"
         self.models_dir.mkdir(exist_ok=True)
         self.plots_dir.mkdir(exist_ok=True)
         self.data = None
@@ -39,24 +41,24 @@ class BankingClassifier:
         self.label_encoder = None
         self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None
         self.models = {
-            "Logistic Regression": LogisticRegression(class_weight='balanced'),
+            "Logistic Regression": LogisticRegression(class_weight='balanced', max_iter=1000),
             "Decision Tree": DecisionTreeClassifier(),
             "Random Forest": RandomForestClassifier(n_estimators=100, class_weight='balanced'),
             "Gradient Boosting": GradientBoostingClassifier(),
             "Gaussian Naive Bayes": GaussianNB(),
             "K-Nearest Neighbors": KNeighborsClassifier(),
         }
-        self.results = pd.DataFrame(columns=["Model", "Accuracy", "ROC AUC Score"])
+        self.results = pd.DataFrame(columns=["Model", "Accuracy", "ROC AUC Score", "Training Time (s)"])
 
     def load_and_prepare_data(self):
+        print("Loading and preparing data...")
         if not self.data_path.exists():
             raise FileNotFoundError(f"Data file not found at: {self.data_path}")
         self.data = pd.read_csv(self.data_path, sep=';')
-        print("Data loaded successfully.")
-        print(self.data.head())
         self._rename_and_change_types()
         if 'poutcome' in self.data.columns:
             self.data.drop("poutcome", axis=1, inplace=True)
+        print("Data loaded and prepared successfully.")
 
     def _rename_and_change_types(self):
         self.data.rename(
@@ -75,7 +77,6 @@ class BankingClassifier:
         ]:
             if col in self.data.columns:
                 self.data[col] = self.data[col].astype("category")
-        print("Columns renamed and data types changed.")
 
     def perform_eda(self):
         print("Performing Exploratory Data Analysis...")
@@ -98,6 +99,7 @@ class BankingClassifier:
         print(f"EDA plots saved to {self.plots_dir}")
 
     def preprocess_and_balance_data(self):
+        print("Preprocessing and balancing data...")
         X = self.data.drop(columns=["response"])
         y = self.data["response"]
 
@@ -127,34 +129,40 @@ class BankingClassifier:
         print("Applying SMOTE to handle class imbalance...")
         smote = SMOTE(random_state=78)
         self.X_train, self.y_train = smote.fit_resample(X_train_processed, y_train_encoded)
-
         print("Data preprocessing and balancing complete.")
-        print(f"Original X_train shape: {X_train_processed.shape}")
-        print(f"Resampled X_train shape: {self.X_train.shape}")
-        print(f"X_test shape: {self.X_test.shape}")
 
     def train_and_evaluate_models(self):
+        print("Training and evaluating models...")
         plt.figure(figsize=(10, 8))
 
-        for name, model in self.models.items():
-            print(f"Training {name}...")
-            model.fit(self.X_train, self.y_train)
-            y_pred = model.predict(self.X_test)
-            y_pred_proba = model.predict_proba(self.X_test)[:, 1]
+        with tqdm(self.models.items()) as pbar:
+            for name, model in pbar:
+                pbar.set_description(f"Training {name}")
+                start_time = time.time()
+                model.fit(self.X_train, self.y_train)
+                end_time = time.time()
+                training_time = end_time - start_time
 
-            accuracy = accuracy_score(self.y_test, y_pred)
-            roc_auc = roc_auc_score(self.y_test, y_pred_proba)
+                y_pred = model.predict(self.X_test)
+                y_pred_proba = model.predict_proba(self.X_test)[:, 1]
 
-            print(f"\n--- {name} ---")
-            print(f"Accuracy: {accuracy:.4f}")
-            print(f"ROC AUC Score: {roc_auc:.4f}")
-            print("Classification Report:\n", classification_report(self.y_test, y_pred))
+                accuracy = accuracy_score(self.y_test, y_pred)
+                roc_auc = roc_auc_score(self.y_test, y_pred_proba)
 
-            new_row = pd.DataFrame([{"Model": name, "Accuracy": accuracy, "ROC AUC Score": roc_auc}])
-            self.results = pd.concat([self.results, new_row], ignore_index=True)
+                new_row = pd.DataFrame(
+                    [
+                        {
+                            "Model": name,
+                            "Accuracy": accuracy,
+                            "ROC AUC Score": roc_auc,
+                            "Training Time (s)": training_time,
+                        }
+                    ]
+                )
+                self.results = pd.concat([self.results, new_row], ignore_index=True)
 
-            fpr, tpr, _ = roc_curve(self.y_test, y_pred_proba)
-            plt.plot(fpr, tpr, label=f"{name} (AUC = {roc_auc:.2f})")
+                fpr, tpr, _ = roc_curve(self.y_test, y_pred_proba)
+                plt.plot(fpr, tpr, label=f"{name} (AUC = {roc_auc:.2f})")
 
         plt.plot([0, 1], [0, 1], "k--")
         plt.xlim([0.0, 1.0])
@@ -169,8 +177,6 @@ class BankingClassifier:
         plt.close()
 
         self.results = self.results.sort_values(by="ROC AUC Score", ascending=False)
-        print("\n--- Model Comparison ---")
-        print(self.results)
 
     def save_artifacts(self):
         print("Saving models and preprocessing artifacts...")
@@ -183,19 +189,17 @@ class BankingClassifier:
         print(f"Artifacts saved to {self.models_dir}")
 
     def predict_on_new_data(self, new_data):
+        print("Making prediction on new data...")
         if self.pre_pipeline is None:
             raise Exception("Preprocessing pipeline is not fitted. Run preprocessing first.")
 
         if not isinstance(new_data, pd.DataFrame):
             raise TypeError("new_data must be a pandas DataFrame.")
 
-        print("\nMaking prediction on new data...")
-        
-        # Ensure categorical columns have the correct type for the pipeline
         for col in new_data.select_dtypes(include=["object"]).columns:
             new_data[col] = new_data[col].astype("category")
             
-        processed_new_data = self.pre_pipeline.transform(new_data);
+        processed_new_data = self.pre_pipeline.transform(new_data)
 
         best_model_name = self.results.iloc[0]["Model"]
         best_model = self.models[best_model_name]
@@ -215,22 +219,24 @@ class BankingClassifier:
         self.preprocess_and_balance_data()
         self.train_and_evaluate_models()
         self.save_artifacts()
-
-        new_sample = pd.DataFrame({
-            "age": [30], "balance": [1000], "day": [15], "duration": [200],
-            "campaign": [1], "pdays": [999], "previous": [0], "job": ["admin."],
-            "marital_status": ["single"], "education": ["university.degree"],
-            "contact": ["cellular"], "month": ["may"], "housing_loan": ["yes"],
-            "personal_loan": ["no"], "credit_default": ["no"],
-        })
-        
-        self.predict_on_new_data(new_sample)
+        return self.results
 
 
 if __name__ == "__main__":
-    classifier = BankingClassifier(
-        data_path="dataset/bank.csv",
-        models_dir="saved_models",
-        plots_dir="plots",
-    )
-    classifier.run()
+    # The base directory is the directory of the script.
+    base_dir = Path(__file__).parent
+    classifier = BankingClassifier(base_dir)
+    results_df = classifier.run()
+
+    print("\n--- Model Performance Summary ---")
+    print(results_df)
+
+    new_sample = pd.DataFrame({
+        "age": [30], "balance": [1000], "day": [15], "duration": [200],
+        "campaign": [1], "pdays": [999], "previous": [0], "job": ["admin."],
+        "marital_status": ["single"], "education": ["university.degree"],
+        "contact": ["cellular"], "month": ["may"], "housing_loan": ["yes"],
+        "personal_loan": ["no"], "credit_default": ["no"],
+    })
+    
+    classifier.predict_on_new_data(new_sample)
