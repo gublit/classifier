@@ -226,3 +226,6 @@ rsconnect/
 
 # Saved models
 saved_models/
+
+# Local configuration files
+gemini.md
