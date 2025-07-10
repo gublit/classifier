@@ -23,7 +23,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
-from tqdm import tqdm
+from rich.progress import track
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 
@@ -140,12 +140,11 @@ class BankingClassifier:
         plt.figure(figsize=(10, 8))
 
         for name, model in self.models.items():
-            with tqdm(total=1, desc=f"Training {name}") as pbar:
+            for _ in track(range(1), description=f"Training {name}..."):
                 start_time = time.time()
                 model.fit(self.X_train, self.y_train)
                 end_time = time.time()
                 training_time = end_time - start_time
-                pbar.update(1)
 
             y_pred = model.predict(self.X_test)
             y_pred_proba = model.predict_proba(self.X_test)[:, 1]
