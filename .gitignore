@@ -1,3 +1,8 @@
+# Project-specific ignores
+.vscode/
+plots/
+*.pkl
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -216,7 +221,6 @@ vignettes/*.pdf
 .Renviron
 
 # pkgdown site
-docs/
 
 # translation temp files
 po/*~
