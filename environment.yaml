@@ -10,3 +10,5 @@ dependencies:
   - imbalanced-learn
   - joblib
   - tqdm
+  - xgboost
+  - lightgbm

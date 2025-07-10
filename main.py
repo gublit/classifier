@@ -24,6 +24,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from tqdm import tqdm
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
 
 warnings.filterwarnings("ignore")
 
@@ -47,6 +49,8 @@ class BankingClassifier:
             "Gradient Boosting": GradientBoostingClassifier(),
             "Gaussian Naive Bayes": GaussianNB(),
             "K-Nearest Neighbors": KNeighborsClassifier(),
+            "XGBoost": XGBClassifier(),
+            "LightGBM": LGBMClassifier(class_weight='balanced'),
         }
         self.results = pd.DataFrame(columns=["Model", "Accuracy", "ROC AUC Score", "Training Time (s)"])
 
