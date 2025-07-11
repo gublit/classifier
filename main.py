@@ -12,8 +12,6 @@ from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
-    auc,
-    classification_report,
     roc_auc_score,
     roc_curve,
 )
