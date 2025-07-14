@@ -3,16 +3,18 @@
 ## Overview
 This project provides a complete workflow for building and evaluating machine learning models for a binary classification task. It uses the Bank Marketing dataset from the UCI Machine Learning Repository to predict whether a customer will subscribe to a term deposit.
 
+The project is presented in two formats:
+- A modular, object-oriented Python script (`main.py`) for a streamlined, automated pipeline.
+- An interactive Jupyter Notebook (`notebooks/main.ipynb`) for detailed, step-by-step exploration and visualization.
+
 ## Project Structure
 ```
 ├── main.py
+├── notebooks/
+│   └── main.ipynb
 ├── environment.yaml
-├── LICENSE
-├── README.md
 ├── dataset/
 │   └── bank.csv
-├── notebooks/
-│   └── (contains notebooks for exploration)
 ├── plots/
 │   └── (contains output plots)
 └── saved_models/
@@ -21,47 +23,64 @@ This project provides a complete workflow for building and evaluating machine le
 
 ## Key Components
 
-### Main Script
-- **main.py**: The primary script for the entire workflow. It handles:
+### Main Script (`main.py`)
+- The primary script for the entire automated workflow. It handles:
   - Data loading and preprocessing.
-  - Exploratory Data Analysis (EDA).
-  - Training and evaluating multiple classification models.
-  - Hyperparameter tuning for Logistic Regression.
-  - Saving all artifacts (models, plots, and encoders).
+  - Exploratory Data Analysis (EDA) and plot generation.
+  - Training and evaluating 8 different classification models.
+  - Handling class imbalance using SMOTE.
+  - Saving all artifacts (models, plots, encoders).
+  - Predicting on a sample data point using the top 3 best-performing models.
+
+### Jupyter Notebook (`notebooks/main.ipynb`)
+- An interactive notebook that provides a detailed, cell-by-cell walkthrough of the entire process:
+  - In-depth data exploration and visualization.
+  - Clear explanations for each preprocessing and modeling step.
+  - Training and evaluation of the same 8 models.
+  - Visualization of ROC curves and confusion matrices for all models.
+  - A great tool for understanding the project's methodology.
 
 ### Data
 - **dataset/bank.csv**: The raw data used for training and evaluation.
 
 ### Artifacts
 - **saved_models/**: The output directory for all generated artifacts, including trained models (`.pkl`), the preprocessing pipeline, and the label encoder.
-- **plots/**: The output directory for all visualizations, such as the response distribution and ROC curve comparisons.
+- **plots/**: The output directory for all visualizations, such as the response distribution, correlation matrix, and ROC curve comparisons.
 
 ### Environment
 - **environment.yaml**: The Conda environment file, which contains all the necessary dependencies to ensure a reproducible setup.
 
 ## How to Run
 
-1.  **Set up the Conda Environment**:
-    ```sh
-    conda env create -f environment.yaml
-    conda activate clasfi
-    ```
+### 1. Set up the Conda Environment
+```sh
+conda env create -f environment.yaml
+conda activate clasfi
+```
 
-2.  **Run the Main Script**:
-    ```sh
-    python main.py
-    ```
-    This will execute the entire pipeline, from data loading to model saving, and will print the progress to the console. The script will also output predictions from the top 3 best performing models on a sample data point.
+### 2. Run the Main Script
+To execute the entire automated pipeline:
+```sh
+python main.py
+```
+This will run the complete workflow, save all artifacts, and print the model performance summary and sample predictions to the console.
+
+### 3. Use the Jupyter Notebook
+For an interactive experience:
+```sh
+jupyter notebook notebooks/main.ipynb
+```
 
 ## Features
-- End-to-end classification pipeline in a single, well-structured script.
-- Object-oriented design for modularity and reusability.
+- End-to-end classification pipeline in both a script and a notebook.
+- Object-oriented design in `main.py` for modularity and reusability.
 - Integrated EDA and visualization.
-- Compares multiple models and uses the top 3 for prediction.
-- Detailed progress bars to monitor model training.
+- Comparison of 8 models: `Logistic Regression`, `Decision Tree`, `Random Forest`, `Gradient Boosting`, `Gaussian Naive Bayes`, `K-Nearest Neighbors`, `XGBoost`, and `LightGBM`.
+- Class imbalance handled with SMOTE.
+- Detailed progress bars using `rich` to monitor model training in the script.
 
 ## Requirements
-- Python 3.11 (as specified in `environment.yaml`)
+- Python 3.11
 - See `environment.yaml` for a full list of dependencies.
 
 ## License
