@@ -28,7 +28,11 @@ from lightgbm import LGBMClassifier
 warnings.filterwarnings("ignore")
 
 
-class BankingClassifier:
+class TD_Predictor:
+    """ A class to handle the training and prediction of various machine learning models
+    on a banking dataset, including data loading, preprocessing, model training,
+    evaluation, and saving of artifacts.
+    """
     def __init__(self, base_dir):
         self.base_dir = Path(base_dir)
         self.data_path = self.base_dir / "dataset" / "bank.csv"
@@ -50,7 +54,7 @@ class BankingClassifier:
             "XGBoost": XGBClassifier(),
             "LightGBM": LGBMClassifier(class_weight='balanced'),
         }
-        self.results = pd.DataFrame(columns=["Model", "Accuracy", "ROC_AUC_Score","Training Time (s)"])
+        self.results = pd.DataFrame(columns=["Model", "Accuracy", "ROC AUC Score","Training Time (s)"])
 
     def load_and_prepare_data(self):
         print("Loading and preparing data...")
@@ -236,7 +240,7 @@ class BankingClassifier:
 if __name__ == "__main__":
     # The base directory is the directory of the script.
     base_dir = Path(__file__).parent
-    classifier = BankingClassifier(base_dir)
+    classifier = TD_Predictor(base_dir)
     results_df = classifier.run()
 
     print("\n--- Model Performance Summary ---")
