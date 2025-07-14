@@ -50,7 +50,7 @@ class BankingClassifier:
             "XGBoost": XGBClassifier(),
             "LightGBM": LGBMClassifier(class_weight='balanced'),
         }
-        self.results = pd.DataFrame(columns=["Model", "Accuracy", "ROC AUC Score", "Training Time (s)"])
+        self.results = pd.DataFrame(columns=["Model", "Accuracy", "ROC_AUC_Score","Training Time (s)"])
 
     def load_and_prepare_data(self):
         print("Loading and preparing data...")
