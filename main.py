@@ -84,7 +84,7 @@ class TD_Predictor:
             if col in self.data.columns:
                 self.data[col] = self.data[col].astype("category")
 
-    def perform_eda(self):
+    def eda(self):
         print("Performing Exploratory Data Analysis...")
         # Distribution of response variable
         plt.figure(figsize=(8, 6))
@@ -137,7 +137,7 @@ class TD_Predictor:
         self.X_train, self.y_train = smote.fit_resample(X_train_processed, y_train_encoded)
         print("Data preprocessing and balancing complete.")
 
-    def train_and_evaluate_models(self):
+    def train_and_evaluate(self):
         print("Training and evaluating models...")
         plt.figure(figsize=(10, 8))
 
@@ -183,7 +183,7 @@ class TD_Predictor:
 
         self.results = self.results.sort_values(by="ROC AUC Score", ascending=False)
 
-    def save_artifacts(self):
+    def artifacts(self):
         print("Saving models and preprocessing artifacts...")
         for name, model in self.models.items():
             model_path = self.models_dir / f"{name.replace(' ', '_').lower()}_model.pkl"
@@ -230,10 +230,10 @@ class TD_Predictor:
 
     def run(self):
         self.load_and_prepare_data()
-        self.perform_eda()
+        self.eda()
         self.preprocess_and_balance_data()
-        self.train_and_evaluate_models()
-        self.save_artifacts()
+        self.train_and_evaluate()
+        self.artifacts()
         return self.results
 
 
