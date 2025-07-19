@@ -38,7 +38,6 @@ The project is presented in two formats:
   - Clear explanations for each preprocessing and modeling step.
   - Training and evaluation of the same 8 models.
   - Visualization of ROC curves and confusion matrices for all models.
-  - A great tool for understanding the project's methodology.
 
 ### Data
 - **dataset/bank.csv**: The raw data used for training and evaluation.
