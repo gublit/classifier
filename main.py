@@ -1,20 +1,18 @@
 import time
 import warnings
 from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 import joblib
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from imblearn.over_sampling import SMOTE
+from numpy.typing import NDArray
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
-    accuracy_score,
-    roc_auc_score,
-    roc_curve,
-)
+from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -29,44 +27,56 @@ warnings.filterwarnings("ignore")
 
 
 class TD_Predictor:
-    """ A class to handle the training and prediction of various machine learning models
+    """A class to handle the training and prediction of various machine learning models
     on a banking dataset, including data loading, preprocessing, model training,
     evaluation, and saving of artifacts.
     """
-    def __init__(self, base_dir):
-        self.base_dir = Path(base_dir)
-        self.data_path = self.base_dir / "dataset" / "bank.csv"
-        self.models_dir = self.base_dir / "saved_models"
-        self.plots_dir = self.base_dir / "plots"
+
+    def __init__(self, base_dir: Union[str, Path]) -> None:
+        self.base_dir: Path = Path(base_dir)
+        self.data_path: Path = self.base_dir / "dataset" / "bank.csv"
+        self.models_dir: Path = self.base_dir / "saved_models"
+        self.plots_dir: Path = self.base_dir / "plots"
         self.models_dir.mkdir(exist_ok=True)
         self.plots_dir.mkdir(exist_ok=True)
-        self.data = None
-        self.pre_pipeline = None
-        self.label_encoder = None
-        self.X_train, self.X_test, self.y_train, self.y_test = None, None, None, None
-        self.models = {
-            "Logistic Regression": LogisticRegression(class_weight='balanced', max_iter=1000),
+        self.data: Optional[pd.DataFrame] = None
+        self.pre_pipeline: Optional[Pipeline] = None
+        self.label_encoder: Optional[LabelEncoder] = None
+        self.X_train: Optional[NDArray[Any]] = None
+        self.X_test: Optional[NDArray[Any]] = None
+        self.y_train: Optional[NDArray[Any]] = None
+        self.y_test: Optional[NDArray[Any]] = None
+        self.models: Dict[str, Any] = {
+            "Logistic Regression": LogisticRegression(
+                class_weight="balanced", max_iter=1000
+            ),
             "Decision Tree": DecisionTreeClassifier(),
-            "Random Forest": RandomForestClassifier(n_estimators=100, class_weight='balanced'),
+            "Random Forest": RandomForestClassifier(
+                n_estimators=100, class_weight="balanced"
+            ),
             "Gradient Boosting": GradientBoostingClassifier(),
             "Gaussian Naive Bayes": GaussianNB(),
             "K-Nearest Neighbors": KNeighborsClassifier(),
             "XGBoost": XGBClassifier(),
-            "LightGBM": LGBMClassifier(class_weight='balanced'),
+            "LightGBM": LGBMClassifier(class_weight="balanced"),
         }
-        self.results = pd.DataFrame(columns=["Model", "Accuracy", "ROC AUC Score","Training Time (s)"])
+        self.results: pd.DataFrame = pd.DataFrame(
+            columns=["Model", "Accuracy", "ROC AUC Score", "Training Time (s)"]
+        )
 
-    def load_and_prepare_data(self):
+    def load_and_prepare_data(self) -> None:
         print("Loading and preparing data...")
         if not self.data_path.exists():
             raise FileNotFoundError(f"Data file not found at: {self.data_path}")
-        self.data = pd.read_csv(self.data_path, sep=';')
+        self.data = pd.read_csv(self.data_path, sep=";")
         self._rename_and_change_types()
-        if 'poutcome' in self.data.columns:
+        if self.data is not None and "poutcome" in self.data.columns:
             self.data.drop("poutcome", axis=1, inplace=True)
         print("Data loaded and prepared successfully.")
 
-    def _rename_and_change_types(self):
+    def _rename_and_change_types(self) -> None:
+        if self.data is None:
+            return
         self.data.rename(
             columns={
                 "marital": "marital_status",
@@ -78,14 +88,25 @@ class TD_Predictor:
             inplace=True,
         )
         for col in [
-            "response", "marital_status", "education", "job", "contact",
-            "month", "day", "credit_default", "housing_loan", "personal_loan",
+            "response",
+            "marital_status",
+            "education",
+            "job",
+            "contact",
+            "month",
+            "day",
+            "credit_default",
+            "housing_loan",
+            "personal_loan",
         ]:
             if col in self.data.columns:
                 self.data[col] = self.data[col].astype("category")
 
-    def eda(self):
+    def eda(self) -> None:
         print("Performing Exploratory Data Analysis...")
+        if self.data is None:
+            print("No data to perform EDA on. Load data first.")
+            return
         # Distribution of response variable
         plt.figure(figsize=(8, 6))
         sns.countplot(x="response", data=self.data)
@@ -104,41 +125,60 @@ class TD_Predictor:
         plt.close()
         print(f"EDA plots saved to {self.plots_dir}")
 
-    def preprocess_and_balance_data(self):
+    def preprocess_and_balance_data(self) -> None:
         print("Preprocessing and balancing data...")
+        if self.data is None:
+            raise ValueError("Data not loaded. Please call load_and_prepare_data() first.")
         X = self.data.drop(columns=["response"])
         y = self.data["response"]
 
         numeric_features = X.select_dtypes(include=["number"]).columns
-        categorical_features = X.select_dtypes(include=["category", "object"]).columns
+        categorical_features = X.select_dtypes(
+            include=["category", "object"]
+        ).columns
 
         pre_processor = ColumnTransformer(
             transformers=[
                 ("num", StandardScaler(), numeric_features),
-                ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical_features),
+                (
+                    "cat",
+                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                    categorical_features,
+                ),
             ]
         )
 
         self.pre_pipeline = Pipeline(steps=[("preprocessor", pre_processor)])
-        
-        X_train_orig, self.X_test, y_train_orig, self.y_test = train_test_split(
+
+        X_train_orig, X_test_orig, y_train_orig, y_test_orig = train_test_split(
             X, y, train_size=0.8, stratify=y, random_state=78
         )
 
         self.label_encoder = LabelEncoder()
         y_train_encoded = self.label_encoder.fit_transform(y_train_orig)
-        self.y_test = self.label_encoder.transform(self.y_test)
+        self.y_test = self.label_encoder.transform(y_test_orig)
 
         X_train_processed = self.pre_pipeline.fit_transform(X_train_orig)
-        self.X_test = self.pre_pipeline.transform(self.X_test)
-        
+        self.X_test = self.pre_pipeline.transform(X_test_orig)
+
         print("Applying SMOTE to handle class imbalance...")
         smote = SMOTE(random_state=78)
-        self.X_train, self.y_train = smote.fit_resample(X_train_processed, y_train_encoded)
+        self.X_train, self.y_train = smote.fit_resample(
+            X_train_processed, y_train_encoded
+        )
         print("Data preprocessing and balancing complete.")
 
-    def train_and_evaluate(self):
+    def train_and_evaluate(self) -> None:
         print("Training and evaluating models...")
+        if (
+            self.X_train is None
+            or self.y_train is None
+            or self.X_test is None
+            or self.y_test is None
+        ):
+            raise ValueError(
+                "Data not preprocessed. Please call preprocess_and_balance_data() first."
+            )
         plt.figure(figsize=(10, 8))
 
         for name, model in self.models.items():
@@ -183,7 +223,7 @@ class TD_Predictor:
 
         self.results = self.results.sort_values(by="ROC AUC Score", ascending=False)
 
-    def artifacts(self):
+    def artifacts(self) -> None:
         print("Saving models and preprocessing artifacts...")
         for name, model in self.models.items():
             model_path = self.models_dir / f"{name.replace(' ', '_').lower()}_model.pkl"
@@ -193,21 +233,28 @@ class TD_Predictor:
         joblib.dump(self.label_encoder, self.models_dir / "label_encoder.pkl")
         print(f"Artifacts saved to {self.models_dir}")
 
-    def predict_on_new_data(self, new_data):
+    def predict_on_new_data(
+        self, new_data: pd.DataFrame
+    ) -> Dict[str, Dict[str, Any]]:
         print("Making predictions on new data using the top 3 models...")
         if self.pre_pipeline is None:
-            raise Exception("Preprocessing pipeline is not fitted. Run preprocessing first.")
+            raise Exception(
+                "Preprocessing pipeline is not fitted. Run preprocessing first."
+            )
+
+        if self.label_encoder is None:
+            raise Exception("Label encoder is not fitted. Run preprocessing first.")
 
         if not isinstance(new_data, pd.DataFrame):
             raise TypeError("new_data must be a pandas DataFrame.")
 
         for col in new_data.select_dtypes(include=["object"]).columns:
             new_data[col] = new_data[col].astype("category")
-            
+
         processed_new_data = self.pre_pipeline.transform(new_data)
 
         top_3_models = self.results.head(3)
-        predictions = {}
+        predictions: Dict[str, Dict[str, Any]] = {}
 
         for index, row in top_3_models.iterrows():
             model_name = row["Model"]
@@ -216,10 +263,10 @@ class TD_Predictor:
             prediction_encoded = model.predict(processed_new_data)
             prediction_proba = model.predict_proba(processed_new_data)
             prediction = self.label_encoder.inverse_transform(prediction_encoded)
-            
+
             predictions[model_name] = {
                 "prediction": prediction[0],
-                "probabilities": prediction_proba[0]
+                "probabilities": prediction_proba[0],
             }
 
             print(f"\n--- {model_name} ---")
@@ -228,7 +275,7 @@ class TD_Predictor:
 
         return predictions
 
-    def run(self):
+    def run(self) -> pd.DataFrame:
         self.load_and_prepare_data()
         self.eda()
         self.preprocess_and_balance_data()
@@ -246,12 +293,24 @@ if __name__ == "__main__":
     print("\n--- Model Performance Summary ---")
     print(results_df)
 
-    new_sample = pd.DataFrame({
-        "age": [30], "balance": [1000], "day": [15], "duration": [200],
-        "campaign": [1], "pdays": [999], "previous": [0], "job": ["admin."],
-        "marital_status": ["single"], "education": ["university.degree"],
-        "contact": ["cellular"], "month": ["may"], "housing_loan": ["yes"],
-        "personal_loan": ["no"], "credit_default": ["no"],
-    })
-    
+    new_sample = pd.DataFrame(
+        {
+            "age": [30],
+            "balance": [1000],
+            "day": [15],
+            "duration": [200],
+            "campaign": [1],
+            "pdays": [999],
+            "previous": [0],
+            "job": ["admin."],
+            "marital_status": ["single"],
+            "education": ["university.degree"],
+            "contact": ["cellular"],
+            "month": ["may"],
+            "housing_loan": ["yes"],
+            "personal_loan": ["no"],
+            "credit_default": ["no"],
+        }
+    )
+
     classifier.predict_on_new_data(new_sample)
