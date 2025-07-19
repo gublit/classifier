@@ -1,4 +1,4 @@
-# Bank Marketing Classification Project
+# Bank Marketing Classification 
 
 ## Overview
 This project provides a complete workflow for building and evaluating machine learning models for a binary classification task. It uses the Bank Marketing dataset from the UCI Machine Learning Repository to predict whether a customer will subscribe to a term deposit.
