@@ -1,10 +1,3 @@
-"""Training and evaluating multiple classifiers on a banking dataset.
-
-This module provides the TD_Predictor class, which handles data loading, preprocessing,
-class imbalance handling, model training/evaluation, artifact persistence, and
-prediction on new samples. It also supports basic EDA by exporting plots.
-"""
-
 import time
 import warnings
 from pathlib import Path
