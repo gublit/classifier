@@ -310,7 +310,7 @@ class TD_Predictor:
     def predict_on_new_data(
         self, new_data: pd.DataFrame
     ) -> Dict[str, Dict[str, Any]]:
-        """Predict using the top 3 models ranked by ROC AUC on the test set.
+        """Predict using the top 5 models ranked by ROC AUC on the test set.
 
         Parameters
         ----------
@@ -330,7 +330,7 @@ class TD_Predictor:
         TypeError
             If new_data is not a pandas DataFrame.
         """
-        print("Making predictions on new data using the top 3 models...")
+        print("Making predictions on new data using the top 5 models...")
         if self.pre_pipeline is None:
             raise Exception(
                 "Preprocessing pipeline is not fitted. Run preprocessing first."
@@ -347,10 +347,10 @@ class TD_Predictor:
 
         processed_new_data = self.pre_pipeline.transform(new_data)
 
-        top_3_models = self.results.head(3)
+        top_5_models = self.results.head(5)
         predictions: Dict[str, Dict[str, Any]] = {}
 
-        for index, row in top_3_models.iterrows():
+        for index, row in top_5_models.iterrows():
             model_name = row["Model"]
             model = self.models[model_name]
 
