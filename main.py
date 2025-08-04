@@ -1,3 +1,10 @@
+"""Training and evaluating multiple classifiers on a banking dataset.
+
+This module provides the TD_Predictor class, which handles data loading, preprocessing,
+class imbalance handling, model training/evaluation, artifact persistence, and
+prediction on new samples. It also supports basic EDA by exporting plots.
+"""
+
 import time
 import warnings
 from pathlib import Path
@@ -27,12 +34,27 @@ warnings.filterwarnings("ignore")
 
 
 class TD_Predictor:
-    """A class to handle the training and prediction of various machine learning models
-    on a banking dataset, including data loading, preprocessing, model training,
-    evaluation, and saving of artifacts.
+    """End-to-end model trainer and predictor for the bank marketing dataset.
+
+    Responsibilities:
+    - Load and clean the dataset
+    - Perform simple EDA and save plots
+    - Preprocess features (scaling numeric, one-hot encoding categorical)
+    - Balance classes with SMOTE
+    - Train a suite of classifiers and evaluate with Accuracy and ROC AUC
+    - Persist models and preprocessing artifacts
+    - Predict on new data using the top-performing models
     """
 
     def __init__(self, base_dir: Union[str, Path]) -> None:
+        """Initialize directories, state, and model registry.
+
+        Parameters
+        ----------
+        base_dir : Union[str, Path]
+            Base project directory containing the dataset folder, and where
+            model artifacts and plots will be written.
+        """
         self.base_dir: Path = Path(base_dir)
         self.data_path: Path = self.base_dir / "dataset" / "bank.csv"
         self.models_dir: Path = self.base_dir / "saved_models"
@@ -65,6 +87,13 @@ class TD_Predictor:
         )
 
     def load_and_prepare_data(self) -> None:
+        """Load the raw CSV, rename columns, cast dtypes, and drop unsupported fields.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the expected dataset file cannot be found at self.data_path.
+        """
         print("Loading and preparing data...")
         if not self.data_path.exists():
             raise FileNotFoundError(f"Data file not found at: {self.data_path}")
@@ -75,6 +104,12 @@ class TD_Predictor:
         print("Data loaded and prepared successfully.")
 
     def _rename_and_change_types(self) -> None:
+        """Standardize column names and cast known categorical fields.
+
+        Notes
+        -----
+        Operates in-place on self.data if available.
+        """
         if self.data is None:
             return
         self.data.rename(
@@ -103,6 +138,13 @@ class TD_Predictor:
                 self.data[col] = self.data[col].astype("category")
 
     def eda(self) -> None:
+        """Generate and save basic EDA plots (class distribution and correlations).
+
+        Saves
+        -----
+        plots/response_distribution.png
+        plots/correlation_matrix.png
+        """
         print("Performing Exploratory Data Analysis...")
         if self.data is None:
             print("No data to perform EDA on. Load data first.")
@@ -114,7 +156,6 @@ class TD_Predictor:
         plt.savefig(self.plots_dir / "response_distribution.png")
         plt.close()
 
-        # Correlation matrix for numeric features
         numeric_ft = self.data.select_dtypes(include=["number"]).columns
         plt.figure(figsize=(12, 8))
         sns.heatmap(
@@ -126,6 +167,21 @@ class TD_Predictor:
         print(f"EDA plots saved to {self.plots_dir}")
 
     def preprocess_and_balance_data(self) -> None:
+        """Fit preprocessing pipeline, split data, encode target, and apply SMOTE.
+
+        Steps
+        -----
+        - Build a ColumnTransformer with StandardScaler for numeric and OneHot for categorical.
+        - Train/test split with stratification.
+        - Label-encode the target for estimator compatibility.
+        - Fit/transform train features; transform test features.
+        - Apply SMOTE on the training set to address class imbalance.
+
+        Raises
+        ------
+        ValueError
+            If data has not been loaded prior to preprocessing.
+        """
         print("Preprocessing and balancing data...")
         if self.data is None:
             raise ValueError("Data not loaded. Please call load_and_prepare_data() first.")
@@ -169,6 +225,23 @@ class TD_Predictor:
         print("Data preprocessing and balancing complete.")
 
     def train_and_evaluate(self) -> None:
+        """Train all registered models, evaluate metrics, and save an ROC comparison plot.
+
+        Computes
+        --------
+        - Accuracy
+        - ROC AUC
+
+        Side Effects
+        ------------
+        - Updates self.results with metrics and training time per model.
+        - Saves plots/roc_comparison.png.
+
+        Raises
+        ------
+        ValueError
+            If preprocessing has not been performed.
+        """
         print("Training and evaluating models...")
         if (
             self.X_train is None
@@ -224,6 +297,14 @@ class TD_Predictor:
         self.results = self.results.sort_values(by="ROC AUC Score", ascending=False)
 
     def artifacts(self) -> None:
+        """Persist trained models and preprocessing artifacts to disk.
+
+        Saves
+        -----
+        saved_models/<model>_model.pkl
+        saved_models/pre_pipeline.pkl
+        saved_models/label_encoder.pkl
+        """
         print("Saving models and preprocessing artifacts...")
         for name, model in self.models.items():
             model_path = self.models_dir / f"{name.replace(' ', '_').lower()}_model.pkl"
@@ -236,6 +317,26 @@ class TD_Predictor:
     def predict_on_new_data(
         self, new_data: pd.DataFrame
     ) -> Dict[str, Dict[str, Any]]:
+        """Predict using the top 3 models ranked by ROC AUC on the test set.
+
+        Parameters
+        ----------
+        new_data : pd.DataFrame
+            A single-row or multi-row DataFrame matching the training feature schema.
+
+        Returns
+        -------
+        Dict[str, Dict[str, Any]]
+            Mapping of model name to its prediction and class probabilities for the
+            provided rows. For single-row inputs, the first element is returned.
+
+        Raises
+        ------
+        Exception
+            If the preprocessing pipeline or label encoder have not been fitted.
+        TypeError
+            If new_data is not a pandas DataFrame.
+        """
         print("Making predictions on new data using the top 3 models...")
         if self.pre_pipeline is None:
             raise Exception(
@@ -276,6 +377,13 @@ class TD_Predictor:
         return predictions
 
     def run(self) -> pd.DataFrame:
+        """Execute the full workflow: load, EDA, preprocess, train, and persist.
+
+        Returns
+        -------
+        pd.DataFrame
+            Sorted evaluation results for all trained models.
+        """
         self.load_and_prepare_data()
         self.eda()
         self.preprocess_and_balance_data()
@@ -285,7 +393,6 @@ class TD_Predictor:
 
 
 if __name__ == "__main__":
-    # The base directory is the directory of the script.
     base_dir = Path(__file__).parent
     classifier = TD_Predictor(base_dir)
     results_df = classifier.run()
